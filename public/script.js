@@ -10,7 +10,7 @@ async function fetchUserList() {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
     data = await response.json();
-    console.log(data);
+    // console.log(data);
 
     // Update Current User
     const User = document.getElementById("current-user");
@@ -96,7 +96,7 @@ async function openChatWindow(friendName, friendId, friendElement) {
     socket.onmessage = (event) => {
       const message = JSON.parse(event.data).Mes;
       // message.Timestamp = new Date().toISOString();
-      console.log(message.TimeStamp);
+      // console.log(message.TimeStamp);
       displayMessage(message);
     };
 
@@ -120,7 +120,7 @@ function displayMessages(messages) {
   chatContainer.innerHTML = "";
 
   // Loop through each message and display it
-  console.log(messages);
+  // console.log(messages);
   messages.forEach((message) => {
     displayMessage(message); // Call displayMessage for each individual message
   });
@@ -144,7 +144,7 @@ function displayMessage(message) {
   // Set chat interface to be visible
   const chatInterface = document.getElementById("chat-interface");
   chatInterface.style.display = "flex !important";
-  console.log("Displaying", message.SenderId, message.ReceiverId);
+  // console.log("Displaying", message.SenderId, message.ReceiverId);
 
   if (!message) return;
   const messageDiv = document.createElement("div");
