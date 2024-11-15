@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Signup Form</title>
+    <!-- Bootstrap CSS link -->
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      /* Custom styling for the form container */
+      .signup-container {
+        display: flex;
+        height: 100vh;
+      }
+      .signup-image {
+        flex: 1;
+        background-image: url("/public/signup.jpg"); /* Replace with your image URL */
+        background-size: cover;
+        background-position: center;
+      }
+      .signup-form {
+        flex: 1;
+        padding: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="signup-container">
+      <!-- Left side (Image) -->
+      <div class="signup-image"></div>
+
+      <!-- Right side (Form) -->
+      <div class="signup-form">
+        <div class="w-100">
+          <h2 class="text-center mb-4">Sign Up</h2>
+
+          {{if .Alert }}
+          <div class="alert alert-danger">{{.Alert}}</div>
+          {{ end }}
+          <form action="/signup" method="POST">
+            <!-- Name input -->
+            <div class="form-group">
+              <label for="name">Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="name"
+                name="name"
+                placeholder="Enter your name"
+                required
+              />
+            </div>
+            <!-- Email input -->
+            <div class="form-group">
+              <label for="email">Email address</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                name="email"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+            <!-- Password input -->
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+            <!-- Submit button -->
+            <button type="submit" class="btn btn-primary btn-block">
+              Sign Up
+            </button>
+            <div class="text-center">
+              <a href="/login">Already have an account? Log in</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies (Optional for functionality) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </body>
+</html>
