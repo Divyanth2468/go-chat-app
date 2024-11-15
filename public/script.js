@@ -5,7 +5,7 @@ let data;
 
 async function fetchUserList() {
   try {
-    const response = await fetch("http://localhost:8080/api/userlist"); // Adjust URL if needed
+    const response = await fetch("/api/userlist"); // Adjust URL if needed
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
