@@ -28,7 +28,7 @@ func routeHandling(port string) {
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public"))))
 	websocket.SocketConnection()
 	fmt.Println("Server up and running")
-	http.ListenAndServe(":"+port, nil)
+	http.ListenAndServe("0.0.0.0:"+port, nil)
 }
 
 func main() {
