@@ -87,7 +87,7 @@ async function openChatWindow(friendName, friendId, friendElement) {
     }
 
     socket = new WebSocket(
-      `ws://localhost:8080/ws?senderId=${data.UserId}&friendId=${friendId}`
+      `wss://go-chat-app-production-60eb.up.railway.app/ws?senderId=${data.UserId}&friendId=${friendId}`
     );
 
     socket.onopen = () =>
