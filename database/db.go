@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -11,7 +12,12 @@ import (
 var DB *sql.DB
 
 func InitDB() error {
-	dsn := "root:chinnichotu@2702@tcp(127.0.0.1:3306)/?parseTime=true"
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/", dbUser, dbPassword, dbHost, dbPort)
 
 	// Open connection to mysql
 	var err error
@@ -36,7 +42,7 @@ func InitDB() error {
 		log.Println("Database 'chatapp' already exists")
 	}
 
-	dsn = "root:chinnichotu@2702@tcp(127.0.0.1:3306)/chatapp?parseTime=true"
+	dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", dbUser, dbPassword, dbHost, dbPort, dbName)
 
 	// Open connection to chatapp
 	DB, err = sql.Open("mysql", dsn)
