@@ -205,7 +205,7 @@ function setupWebSocket() {
 
   // Establish a new WebSocket connection
   usersocket = new WebSocket(
-    `ws://localhost:8080/ws-friend-request?user_id=${data.UserId}`
+    `wss://go-chat-app-production-60eb.up.railway.app/ws-friend-request?user_id=${data.UserId}`
   );
 
   usersocket.onopen = () => {
@@ -275,7 +275,7 @@ async function openChatWindow(friendName, friendId, friendElement) {
     }
 
     socket = new WebSocket(
-      `ws://localhost:8080/ws?senderId=${data.UserId}&friendId=${friendId}`
+      `wss://go-chat-app-production-60eb.up.railway.app/ws?senderId=${data.UserId}&friendId=${friendId}`
     );
 
     socket.onopen = () =>
@@ -434,5 +434,3 @@ window.onload = () => {
   // Call the function on page load or when needed
   fetchUserList();
 };
-
-// `wss://go-chat-app-production-60eb.up.railway.app/ws?senderId=${data.UserId}&friendId=${friendId}`
