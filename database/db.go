@@ -37,9 +37,9 @@ func InitDB() error {
 		log.Fatal(err)
 	}
 
-	if _, err := DB.Exec(`DROP DATABASE IF EXISTS chatapp;`); err != nil {
-		log.Println("Error deleting database")
-	}
+	// if _, err := DB.Exec(`DROP DATABASE IF EXISTS chatapp;`); err != nil {
+	// 	log.Println("Error deleting database")
+	// }
 
 	log.Println("Database Connection to Mysql server established securely")
 
