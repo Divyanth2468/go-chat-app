@@ -15,16 +15,12 @@ type alert struct {
 	Alert string
 }
 
-type Friend struct {
-	Id     uuid.UUID
-	Name   string
-	Status string
-}
-
 type home_data struct {
 	UserId   uuid.UUID
 	UserName string
-	Friends  []Friend
+	Friends  []models.Users
+	Users    []models.Users
+	Requests []models.Users
 }
 
 var store = sessions.NewCookieStore([]byte("Secret Keys"))
@@ -179,7 +175,15 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 func UserListHandler(w http.ResponseWriter, r *http.Request) {
 	id, _ := IsAuthenticated(r)
 	user := models.GetUserById(id)
-	friends := renderData(id)
+	friends, err := models.GetFriendsByUserId(id)
+	if err != nil {
+		log.Println("Error getting friends", err)
+	}
+	requests, err := models.GetPendingRequestsByUser(id)
+	allusers := models.GetAllUsers(id, requests, friends)
+	if err != nil {
+		log.Println("Error getting pending requests", err)
+	}
 
 	// Convert friends data to JSON format
 	// log.Println(friends)
@@ -187,26 +191,13 @@ func UserListHandler(w http.ResponseWriter, r *http.Request) {
 		UserId:   user.Id,
 		UserName: user.Name,
 		Friends:  friends,
+		Users:    allusers,
+		Requests: requests,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-}
-
-func renderData(id uuid.UUID) []Friend {
-	var friends []Friend
-	friends_ := models.GetFriendsByUserId(id)
-	for _, f := range friends_ {
-		// log.Println(messages)
-		friend := Friend{
-			Id:     f.Id,
-			Name:   f.Name,
-			Status: f.Status,
-		}
-		friends = append(friends, friend)
-	}
-	return friends
 }
 
 // GetMessagesHandler handles the request to get messages between two users

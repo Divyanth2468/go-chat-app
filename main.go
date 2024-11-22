@@ -25,6 +25,7 @@ func routeHandling(port string) {
 	http.HandleFunc("/logout", handlers.LogoutHandler)
 	http.HandleFunc("/api/messages", handlers.GetMessagesHandler)
 	http.HandleFunc("/api/userlist", handlers.UserListHandler)
+	// http.HandleFunc("/friend-request/", handlers.FriendRequestHandler)
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("./public"))))
 	websocket.SocketConnection()
 	fmt.Println("Server up and running")

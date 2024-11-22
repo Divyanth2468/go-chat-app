@@ -1,8 +1,11 @@
 let socket = null; // WebSocket connection
+let usersocket = null; // WebSocket connection for user list update
 let currentFriendId = null;
 let receiverId;
 let data;
+let lastDate = null;
 
+// Inital fetch on page load
 async function fetchUserList() {
   try {
     const response = await fetch("/api/userlist"); // Adjust URL if needed
@@ -33,6 +36,9 @@ async function fetchUserList() {
 
     // Update your UI dynamically
     populateFriendList(data.Friends);
+    populateUsersList(data.Users);
+    populatePendingRequests(data.Requests);
+    setupWebSocket();
   } catch (error) {
     console.error("Error fetching user list:", error);
   }
@@ -40,6 +46,7 @@ async function fetchUserList() {
 
 // Example function to populate the friend list
 function populateFriendList(friends) {
+  if (!friends) return;
   const friendList = document.getElementById("friend-list");
   friendList.innerHTML = ""; // Clear current list
 
@@ -61,10 +68,191 @@ function populateFriendList(friends) {
   });
 }
 
-// Call the function on page load or when needed
-fetchUserList();
+// Populate Pending Requests
+function populatePendingRequests(pendingRequests) {
+  const pendingList = document.getElementById("pendingRequestsList");
+  pendingList.innerHTML = ""; // Clear current list
+  // console.log(pendingList, pendingList.innerHTML);
+  if (!pendingRequests) {
+    alertDiv = document.createElement("div");
+    alertDiv.textContent = "No pending requests";
+    alertDiv.className = "alert alert-secondary text-center mt-2";
+    alertDiv.id = "EmptyPendingList";
+    pendingList.appendChild(alertDiv);
+    return;
+  }
+  // console.log(pendingList, pendingList.innerHTML);
 
+  pendingRequests.forEach((request) => {
+    const trimmedName =
+      request.Name.length > 15
+        ? `${request.Name.substring(0, 12)}...`
+        : request.Name;
+
+    const [_, statusPart] = request.Status.split("-"); // Split the status by '-'
+
+    const listItem = document.createElement("li");
+    listItem.className =
+      "list-group-item pending-item d-flex flex-column align-items-center";
+
+    if (statusPart.trim().toLowerCase() === "requested") {
+      // Display grayed-out button for "Requested" status
+      listItem.innerHTML = `
+          <div class="text-center">
+            <strong class="user-name">${trimmedName}</strong>
+          </div>
+          <button class="btn btn-sm btn-secondary mt-2" disabled>
+            Requested
+          </button>
+        `;
+    } else {
+      // Display Accept and Reject buttons
+      listItem.innerHTML = `
+          <div class="text-center">
+            <strong class="user-name">${trimmedName}</strong>
+          </div>
+          <div class="btn-group mt-2">
+            <button class="btn btn-sm btn-success accept-request-btn mr-2">
+              Accept
+            </button>
+            <button class="btn btn-sm btn-danger reject-request-btn ml-2">
+              Reject
+            </button>
+          </div>
+        `;
+
+      const acceptButton = listItem.querySelector(".accept-request-btn");
+      const rejectButton = listItem.querySelector(".reject-request-btn");
+
+      acceptButton.onclick = async () => {
+        const res = await handleFriendRequest(request.Id, "accept");
+        if (res) {
+          listItem.remove(); // Remove the request from the list
+        }
+      };
+
+      rejectButton.onclick = async () => {
+        const res = await handleFriendRequest(request.Id, "reject");
+        if (res) {
+          listItem.remove(); // Remove the request from the list
+        }
+      };
+    }
+
+    pendingList.appendChild(listItem);
+  });
+}
+
+// Populate users
+function populateUsersList(users) {
+  const usersList = document.getElementById("allUsers");
+  usersList.innerHTML = ""; // Clear current list
+
+  if (!users) {
+    alertDiv = document.createElement("div");
+    alertDiv.textContent = "No Users to display";
+    alertDiv.className = "alert alert-secondary text-center mt-2";
+    alertDiv.id = "EmptyUserList";
+    usersList.appendChild(alertDiv);
+    return;
+  }
+  // console.log(users);
+
+  users.forEach((user) => {
+    const trimmedName =
+      user.Name.length > 15 ? `${user.Name.substring(0, 12)}...` : user.Name;
+    const listItem = document.createElement("li");
+    listItem.className =
+      "list-group-item user-item d-flex justify-content-between align-items-center";
+
+    listItem.innerHTML = `
+      <div class="d-flex align-items-center">
+        <strong>${trimmedName}</strong>
+      </div>
+      <button class="btn btn-sm btn-primary add-friend-btn">
+        Add Friend
+      </button>
+    `;
+
+    const addFriendButton = listItem.querySelector(".add-friend-btn");
+    addFriendButton.onclick = () => {
+      const res = handleFriendRequest(user.Id, "");
+      if (res) {
+        // Update button text and style
+        addFriendButton.textContent = "Request Sent";
+        addFriendButton.classList.remove("btn-primary");
+        addFriendButton.classList.add("btn-success");
+
+        // Disable the button
+        addFriendButton.disabled = true;
+
+        // Remove the list item after 2 seconds
+        setTimeout(() => {
+          listItem.remove();
+        }, 2000);
+      }
+    };
+    usersList.appendChild(listItem);
+  });
+}
+
+// Socket for real time list updates
+function setupWebSocket() {
+  // Close any existing WebSocket connection
+  if (usersocket) {
+    usersocket.close();
+  }
+
+  // Establish a new WebSocket connection
+  usersocket = new WebSocket(
+    `ws://localhost:8080/ws-friend-request?user_id=${data.UserId}`
+  );
+
+  usersocket.onopen = () => {
+    console.log("WebSocket connected for Friend List Updates");
+  };
+
+  usersocket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    // console.log(data);
+    // Handle updates for the pending friend list
+    const updatedPendingList = data.RequestList;
+    populatePendingRequests(updatedPendingList);
+
+    // Handle updates for the accepted/rejected friend list
+    const updatedFriendList = data.FriendList;
+    populateFriendList(updatedFriendList);
+
+    // Handle Updates for user list
+    const updatedUserList = data.UserList;
+    populateUsersList(updatedUserList);
+  };
+
+  usersocket.onclose = () => {
+    console.log("WebSocket connection closed");
+  };
+}
+
+// Function to send requests
+async function handleFriendRequest(reqUserId, action) {
+  if (!usersocket) {
+    console.error("WebSocket is not initialized");
+    return;
+  }
+
+  // Send friend request action via WebSocket
+  usersocket.send(
+    JSON.stringify({
+      user_id: data.UserId,
+      req_user_Id: reqUserId,
+      action: action,
+    })
+  );
+}
+
+// Open chat window for chat
 async function openChatWindow(friendName, friendId, friendElement) {
+  lastDate = null;
   if (currentFriendId !== friendId) {
     try {
       const response = await fetch(
@@ -87,7 +275,7 @@ async function openChatWindow(friendName, friendId, friendElement) {
     }
 
     socket = new WebSocket(
-      `wss://go-chat-app-production-60eb.up.railway.app/ws?senderId=${data.UserId}&friendId=${friendId}`
+      `ws://localhost:8080/ws?senderId=${data.UserId}&friendId=${friendId}`
     );
 
     socket.onopen = () =>
@@ -95,8 +283,6 @@ async function openChatWindow(friendName, friendId, friendElement) {
 
     socket.onmessage = (event) => {
       const message = JSON.parse(event.data).Mes;
-      // message.Timestamp = new Date().toISOString();
-      // console.log(message.TimeStamp);
       displayMessage(message);
     };
 
@@ -126,16 +312,18 @@ function displayMessages(messages) {
   });
 }
 
+// Send messages
 function sendMessage() {
   const messageInput = document.getElementById("chat-message");
   const message = messageInput.value.trim();
-
+  // console.log(message);
   if (message && socket && socket.readyState === WebSocket.OPEN) {
     socket.send(message);
   }
   messageInput.value = "";
 }
 
+// Display messages
 function displayMessage(message) {
   // Hide the placeholder
   const placeholder = document.getElementById("placeholder-message");
@@ -147,6 +335,24 @@ function displayMessage(message) {
   // console.log("Displaying", message.SenderId, message.ReceiverId);
 
   if (!message) return;
+
+  const chatWindow = document.getElementById("chat-messages");
+  const currentDate = formatDate(message.TimeStamp);
+
+  // Check if new date header needs to be added
+  if (lastDate != currentDate) {
+    // Create New Date Header
+    const dateDiv = document.createElement("div");
+    dateDiv.classList.add("date-header");
+    dateDiv.textContent = currentDate;
+
+    // Append the date header to the chat window
+    chatWindow.appendChild(dateDiv);
+
+    // Update the lastDate
+    lastDate = currentDate;
+  }
+
   const messageDiv = document.createElement("div");
   messageDiv.classList.add("message");
 
@@ -175,10 +381,9 @@ function displayMessage(message) {
 
   // Append message content and timestamp to the message div
   messageDiv.appendChild(messageContainer);
-  // messageContent.appendChild(timestampSpan);
 
   // Append the message div to the chat window
-  document.getElementById("chat-messages").appendChild(messageDiv);
+  chatWindow.appendChild(messageDiv);
   scrollToBottom();
 }
 
@@ -190,6 +395,31 @@ function formatTimestamp(utcTimestamp) {
   return `${hours}:${minutes}`; // Return in "HH:MM" format
 }
 
+// Date conversions
+function formatDate(utcTimestamp) {
+  const date = new Date(utcTimestamp); // Create a Date object from UTC timestamp
+  const now = new Date(); // Current date and time
+
+  // Calculate the difference in days
+  const diffTime = now - date; // Difference in milliseconds
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)); // Convert to days
+
+  if (diffDays === 0) {
+    return "Today";
+  } else if (diffDays === 1) {
+    return "Yesterday";
+  } else {
+    // For older dates, format as YYYY-MM-DD
+    const displayDate =
+      date.getFullYear() +
+      "-" +
+      String(date.getMonth() + 1).padStart(2, "0") + // Ensure two digits
+      "-" +
+      String(date.getDate()).padStart(2, "0"); // Ensure two digits
+    return displayDate;
+  }
+}
+
 document
   .getElementById("send-message-btn")
   .addEventListener("click", sendMessage);
@@ -199,3 +429,10 @@ function scrollToBottom() {
   const chatMessages = document.getElementById("chat-messages");
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
+
+window.onload = () => {
+  // Call the function on page load or when needed
+  fetchUserList();
+};
+
+// `wss://go-chat-app-production-60eb.up.railway.app/ws?senderId=${data.UserId}&friendId=${friendId}`

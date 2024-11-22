@@ -89,11 +89,11 @@ func GetUserById(id uuid.UUID) *Users {
 	return &user
 }
 
-func GetFriendsByUserId(userId uuid.UUID) []Users {
+func GetAllUsers(userId uuid.UUID, requests, friends []Users) []Users {
 	query := "SELECT id, name, status FROM users WHERE id != ?"
 	rows, err := database.DB.Query(query, userId)
 	if err != nil {
-		log.Println("Error fetching friends", err)
+		log.Println("Error fetching Users", err)
 		return nil
 	}
 	defer rows.Close()
@@ -107,7 +107,113 @@ func GetFriendsByUserId(userId uuid.UUID) []Users {
 		}
 		users = append(users, user)
 	}
-	return users
+
+	// Create a map to track IDs in requests and friends
+	excludedIds := make(map[uuid.UUID]struct{})
+
+	// Add request IDs to the map
+	for _, r := range requests {
+		excludedIds[r.Id] = struct{}{}
+	}
+
+	// Add friend IDs to the map
+	for _, f := range friends {
+		excludedIds[f.Id] = struct{}{}
+	}
+
+	// Filter users not in excludedIds
+	var filteredUsers []Users
+	for _, u := range users {
+		if _, exists := excludedIds[u.Id]; !exists {
+			filteredUsers = append(filteredUsers, u)
+		}
+	}
+
+	return filteredUsers
+}
+
+func GetFriendsByUserId(userId uuid.UUID) ([]Users, error) {
+	query := `
+        SELECT u.id, u.name, CONCAT(u.status, '-', f.status) AS combined_status
+				FROM friends f
+				JOIN users u ON f.friend_id = u.id
+				WHERE f.user_id = ? AND f.status = 'accepted'
+
+				UNION
+
+				SELECT u.id, u.name, CONCAT(u.status, '-', f.status) AS combined_status
+				FROM friends f
+				JOIN users u ON f.user_id = u.id
+				WHERE f.friend_id = ? AND f.status = 'accepted';
+
+    `
+	rows, err := database.DB.Query(query, userId, userId)
+	if err != nil {
+		log.Println("Error fetching friends:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []Users
+	for rows.Next() {
+		var user Users
+
+		// Scan only the required fields
+		err := rows.Scan(&user.Id, &user.Name, &user.Status)
+		if err != nil {
+			log.Println("Error scanning friend row:", err)
+			continue
+		}
+
+		// Append to the result slice
+		users = append(users, user)
+	}
+
+	// Return the list of friends
+	return users, nil
+}
+
+func GetPendingRequestsByUser(userId uuid.UUID) ([]Users, error) {
+	query := `
+					SELECT u.id, u.name, CONCAT(u.status, '-', 'requested') AS combined_status
+					FROM friends f
+					JOIN users u 
+					ON f.user_id = u.id
+					WHERE f.friend_id = ? AND f.status = 'pending'
+
+					UNION
+
+					SELECT u.id, u.name, CONCAT(u.status, '-', 'recieved') AS combined_status
+					FROM friends f
+					JOIN users u 
+					ON f.friend_id = u.id
+					WHERE f.user_id = ? AND f.status = 'pending';
+			`
+	rows, err := database.DB.Query(query, userId, userId)
+	if err != nil {
+		log.Println("Error fetching friends:", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []Users
+	for rows.Next() {
+		var user Users
+
+		// Scan only the required fields
+		err := rows.Scan(&user.Id, &user.Name, &user.Status)
+		if err != nil {
+			log.Println("Error scanning friend row:", err)
+			continue
+		}
+		log.Println(user.Id, user.Name, user.Status)
+
+		// Append to the result slice
+		users = append(users, user)
+	}
+
+	// Return the list of Requests
+	return users, nil
 }
 
 // Filter by email

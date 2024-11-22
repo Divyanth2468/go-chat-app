@@ -35,6 +35,7 @@ func (m *Message) SaveMessages() error {
 
 	query := "INSERT INTO messages (sender_id, receiver_id, message, created_at) VALUES (?, ?, ?, ?)"
 
+	// log.Panicln("Saving")
 	// Preparing the query statement for exec
 	stmt, err := database.DB.Prepare(query)
 	if err != nil {

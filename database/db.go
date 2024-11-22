@@ -7,18 +7,24 @@ import (
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
 )
 
 var DB *sql.DB
 
 func InitDB() error {
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbHost := os.Getenv("DB_HOST")
 	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
+	log.Println("fvdgbvgs", dbUser, dbPassword, dbHost, dbPort, dbName)
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/", dbUser, dbPassword, dbHost, dbPort)
-
+	// dsn := `root:chinnichotu@2702@tcp(127.0.0.1:3306)/`
 	// Open connection to mysql
 	var err error
 	DB, err = sql.Open("mysql", dsn)
@@ -30,6 +36,11 @@ func InitDB() error {
 	if err := DB.Ping(); err != nil {
 		log.Fatal(err)
 	}
+
+	if _, err := DB.Exec(`DROP DATABASE IF EXISTS chatapp;`); err != nil {
+		log.Println("Error deleting database")
+	}
+
 	log.Println("Database Connection to Mysql server established securely")
 
 	if !doesDBExist("chatapp") {
@@ -43,6 +54,7 @@ func InitDB() error {
 	}
 
 	dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", dbUser, dbPassword, dbHost, dbPort, dbName)
+	// dsn = `root:chinnichotu@2702@tcp(127.0.0.1:3306)/chatapp?parseTime=true`
 
 	// Open connection to chatapp
 	DB, err = sql.Open("mysql", dsn)
@@ -127,6 +139,7 @@ func createTables() error {
 			status ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending',
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			UNIQUE (user_id, friend_id),
 			FOREIGN KEY (user_id) REFERENCES users(id),
 			FOREIGN KEY (friend_id) REFERENCES users(id)
 		);

@@ -12,205 +12,9 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="/public/styles.css" />
 
-    <style>
-      .current-user-div {
-        display: flex;
-        align-items: center;
-        padding: 12px 20px;
-        max-width: 100%;
-        margin: 10px auto;
-      }
-
-      .current-user-img {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        margin-right: 15px;
-        object-fit: cover;
-        border: 3px solid #4caf50;
-        transition: transform 0.3s ease-in-out;
-      }
-
-      .current-user-name {
-        font-size: 20px;
-        font-weight: 600;
-        color: #fff;
-        margin-bottom: 5px;
-      }
-
-      .friends-list {
-        list-style: none;
-        /* padding: 0;
-        margin: 0; */
-        max-height: 400px;
-        width: 100%;
-        overflow: auto;
-      }
-
-      .friend-item {
-        padding: 10px 15px;
-        margin-bottom: 10px;
-        background-color: #495057;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        color: #f8f9fa;
-        text-align: center;
-      }
-
-      .friend-item:hover {
-        background-color: #28a745;
-        color: #fff;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      }
-
-      .friend-item.active {
-        background-color: #28a745;
-        color: #fff;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      }
-
-      .logout-btn-container {
-        position: absolute;
-        bottom: 20px;
-        width: 100%;
-        right: 10px;
-        text-align: center;
-      }
-
-      .logout-btn-container .btn {
-        font-size: 10px;
-        padding: 10px;
-        width: 80%;
-        border-radius: 10px;
-      }
-
-      .placeholder-message {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100vh; /* Full viewport height */
-        text-align: center;
-        font-size: 1.5rem;
-        color: #666;
-        width: 100%;
-      }
-
-      .chat-interface {
-        display: flex !important;
-        flex-direction: column;
-        height: 100vh; /* Full viewport height */
-      }
-
-      #friend-name {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .active-friend {
-        display: flex;
-        align-items: center;
-        padding: 12px 20px;
-        max-width: 100%;
-        margin: 10px auto;
-      }
-
-      #friend-name img {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        margin-right: 15px;
-        object-fit: cover;
-        border: 3px solid #4caf50;
-        transition: transform 0.3s ease-in-out;
-      }
-
-      #friend-name-text {
-        font-size: 20px;
-        font-weight: 600;
-        color: #000;
-        margin-bottom: 5px;
-      }
-
-      #chat-messages {
-        flex-grow: 1;
-        max-height: 80vh;
-        overflow-y: auto;
-        /* background-color: #f1f1f1; */
-        background: rgba(34, 47, 62, 0.9);
-      }
-
-      /* Style for individual messages */
-      .message {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        margin: 10px 10px;
-        padding: 4px 8px;
-        /* border-radius: 8px; */
-        max-width: 50%;
-        width: fit-content;
-        overflow: visible;
-        word-wrap: break-word;
-      }
-
-      /* Style for sender 1 (Left-aligned) */
-      .message.sender {
-        background-color: #e1f7fa;
-        align-self: flex-start;
-        margin-left: 0;
-        margin-right: auto;
-        border-radius: 0 15px 15px 0;
-      }
-
-      /* Style for sender 2 (Right-aligned) */
-      .message.receiver {
-        background-color: #c8e6c9;
-        align-self: flex-end;
-        border-radius: 15px 0 0 15px;
-        margin-left: auto;
-        margin-right: 0;
-      }
-
-      .message-container {
-        display: flex;
-        flex-direction: column; /* Stack content and time vertically */
-        align-items: flex-start; /* Align both content and time to the left */
-        margin-bottom: 4px;
-        padding: 4px;
-      }
-
-      /* Message content and time styling */
-      .message-content {
-        flex: 1;
-        font-size: 14px;
-        color: #333;
-        margin-right: 25px;
-      }
-
-      .message-time {
-        font-size: 12px;
-        color: #888;
-        align-self: flex-end;
-      }
-
-      .chat-input {
-        display: flex;
-        align-items: center;
-        margin-top: 10px;
-      }
-
-      .chat-input input {
-        flex-grow: 1;
-        margin-right: 10px;
-      }
-
-      .chat-input button {
-        flex-shrink: 0;
-      }
-    </style>
+    <style></style>
   </head>
   <body>
     <div class="container-fluid">
@@ -222,20 +26,49 @@
             <hr />
             <div id="current-user"></div>
 
-            <!-- <div class="mt-4">
-              <input
-                type="text"
-                id="search-bar"
-                class="form-control"
-                placeholder="Search users..."
-                oninput="searchUsers()"
-              />
-            </div> -->
-
             <div class="friends-list mt-4">
               <h5>Your Friends</h5>
               <ul class="list-group" id="friend-list"></ul>
             </div>
+
+            <!-- Dropdown for All Users -->
+            <div class="mt-4 w-100">
+              <button
+                class="btn btn-secondary w-100"
+                type="button"
+                data-toggle="collapse"
+                data-target="#allUsersList"
+                aria-expanded="false"
+                aria-controls="allUsersList"
+              >
+                All Users
+              </button>
+              <div class="collapse mt-2" id="allUsersList">
+                <ul class="list-group" id="allUsers">
+                  <!-- Dynamically populate this -->
+                </ul>
+              </div>
+            </div>
+
+            <!-- Dropdown for Pending Requests -->
+            <div class="mt-4 w-100">
+              <button
+                class="btn btn-secondary w-100"
+                type="button"
+                data-toggle="collapse"
+                data-target="#pendingRequestsList"
+                aria-expanded="false"
+                aria-controls="pendingRequestsList"
+              >
+                Pending Friend Requests
+              </button>
+              <div class="collapse mt-2" id="pendingRequestsList">
+                <ul class="list-group">
+                  <!-- Dynamically populate this -->
+                </ul>
+              </div>
+            </div>
+
             <div class="logout-btn-container">
               <a href="/logout" class="btn btn-danger">Logout</a>
             </div>
@@ -278,5 +111,20 @@
       </div>
     </div>
     <script type="text/javascript" src="/public/script.js"></script>
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+      integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+      integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"
+    ></script>
   </body>
 </html>
